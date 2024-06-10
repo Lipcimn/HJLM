@@ -2,6 +2,7 @@ import { commands } from "./commands";
 import { config } from "./config";
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import { deployCommands } from "./deploy-commands";
+import { messagesHandler } from "./handlers/messages.ts";
 
 const client = new Client({
   intents: [
@@ -14,7 +15,10 @@ const client = new Client({
 
 client.once(Events.ClientReady, (client) => {
   console.log(`Ready! Logged in as ${client.user.tag}`);
-  client.guilds.cache.map((guild) => deployCommands({ guildId: guild.id }));
+  client.guilds.cache.map((guild) => {
+    console.log(`Deploying commands to ${guild.name}`);
+    deployCommands({ guildId: guild.id });
+  });
 });
 
 client.on(Events.GuildCreate, async (guild) => {
@@ -29,5 +33,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     await commands[commandName as keyof typeof commands].execute(interaction);
   }
 });
+
+client.on(Events.MessageCreate, messagesHandler);
 
 client.login(config.DISCORD_TOKEN);
