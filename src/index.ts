@@ -1,12 +1,33 @@
-import * as dotenv from "dotenv";
+import { commands } from "./commands";
+import { config } from "./config";
 import { Client, Events, GatewayIntentBits } from "discord.js";
+import { deployCommands } from "./deploy-commands";
 
-dotenv.config();
-
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-
-client.once(Events.ClientReady, (readyClienty) => {
-  console.log(`Ready! Logged in as ${readyClienty.user.tag}`);
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
+  ],
 });
 
-client.login(process.env.TOKEN);
+client.once(Events.ClientReady, (client) => {
+  console.log(`Ready! Logged in as ${client.user.tag}`);
+  client.guilds.cache.map((guild) => deployCommands({ guildId: guild.id }));
+});
+
+client.on(Events.GuildCreate, async (guild) => {
+  await deployCommands({ guildId: guild.id });
+});
+
+client.on(Events.InteractionCreate, async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const { commandName } = interaction;
+  if (commands[commandName as keyof typeof commands]) {
+    await commands[commandName as keyof typeof commands].execute(interaction);
+  }
+});
+
+client.login(config.DISCORD_TOKEN);
