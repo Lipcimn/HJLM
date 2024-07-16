@@ -1,11 +1,13 @@
 import ping from "./utility/ping";
-import ryan from "./ryan";
+import ryangif from "./ryangif";
 import help from "./utility/help";
 import chat from "./chat";
+import ryanpercentage from "./ryanpercentage";
 
 export const commands = {
   ping,
-  ryan,
+  ryangif,
   help,
   chat,
+  ryanpercentage,
 };
